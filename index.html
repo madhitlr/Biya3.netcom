@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mini Twitter</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #e9e9e9;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        #postForm {
+            margin-bottom: 20px;
+        }
+        
+        #postText {
+            width: 100%;
+            margin-bottom: 10px;
+            padding: 10px;
+            height: 100px;
+        }
+        
+        input[type="file"] {
+            margin-bottom: 10px;
+        }
+        
+        button {
+            padding: 10px 20px;
+            background-color: #1DA1F2;
+            border: none;
+            color: white;
+            cursor: pointer;
+        }
+        
+        button:hover {
+            background-color: #117dc0;
+        }
+        
+        .post {
+            padding: 10px;
+            border-bottom: 1px solid #e1e8ed;
+        }
+        
+        .post:last-child {
+            border-bottom: none;
+        }
+        
+        .post img {
+            max-width: 100%;
+            height: auto;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body onload="loadPosts()">
+
+    <div class="container">
+        <h1>Mini Twitter</h1>
+        <div id="postForm">
+            <textarea id="postText" placeholder="Quoi de neuf ?"></textarea>
+            <input type="file" id="postImage" accept="image/*">
+            <button onclick="postTweet()">Poster</button>
+        </div>
+        <div id="posts"></div>
+    </div>
+
+    <script>
+        function postTweet() {
+            const postText = document.getElementById('postText').value;
+            const postImage = document.getElementById('postImage').files[0];
+            let posts = JSON.parse(localStorage.getItem('posts') || '[]');
+
+            if (postImage) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const newPost = {
+                        text: postText,
+                        image: e.target.result,
+                        date: new Date().toISOString()
+                    };
+                    posts.push(newPost);
+                    localStorage.setItem('posts', JSON.stringify(posts));
+
+                    // Ajouter le post à l'affichage sans recharger la page
+                    addPostToDisplay(newPost);
+
+                    // Effacer le champ de texte et l'entrée de fichier
+                    document.getElementById('postText').value = '';
+                    document.getElementById('postImage').value = null;
+                }
+                reader.readAsDataURL(postImage);
+            } else if (postText.trim() !== '') {
+                const newPost = {
+                    text: postText,
+                    date: new Date().toISOString()
+                };
+                posts.push(newPost);
+                localStorage.setItem('posts', JSON.stringify(posts));
+
+                // Ajouter le post à l'affichage sans recharger la page
+                addPostToDisplay(newPost);
+
+                // Effacer le champ de texte
+                document.getElementById('postText').value = '';
+            }
+        }
+
+        function loadPosts() {
+            const posts = JSON.parse(localStorage.getItem('posts') || '[]').reverse();
+            posts.forEach(post => {
+                addPostToDisplay(post);
+            });
+        }
+
+        function addPostToDisplay(post) {
+            const postDiv = document.createElement('div');
+            postDiv.classList.add('post');
+
+            if (post.text) {
+                const p = document.createElement('p');
+                p.textContent = post.text;
+                postDiv.appendChild(p);
+            }
+
+            if (post.image) {
+                const img = document.createElement('img');
+                img.src = post.image;
+                postDiv.appendChild(img);
+            }
+
+            document.getElementById('posts').prepend(postDiv); // Use prepend to add the latest post at the top
+        }
+    </script>
+</body>
+
+</html>
